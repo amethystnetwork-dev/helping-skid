@@ -8,6 +8,7 @@ RUN npm install
 
 COPY static static/
 COPY src src/
+COPY src/index.js src/
 
 EXPOSE 8080
 
