@@ -7,8 +7,7 @@ COPY package*.json .
 RUN npm install
 
 COPY static static/
-COPY src/analytics.js src/
-COPY src/index.js src/
+COPY src src/
 
 EXPOSE 8080
 
