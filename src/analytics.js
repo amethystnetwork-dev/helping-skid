@@ -26,9 +26,17 @@ export default function(app) {
     app.use("/data", bodyParser.text());
 
     app.GET("/data/data", (req, res) => {
+        const now = Date.now();
+        let live = 0;
+        for(const [id, { ut }] of visitors) {
+            if(now - ut < 60000) live++;
+            else visitors.delete(id);
+        }
+        if(live > peak) peak = live;
+        visits++;
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({
-            live: visitors.size,
+            live,
             peak,
             visits
         }));
@@ -59,7 +67,6 @@ export default function(app) {
 
     app.POST("/data/keep-alive", (req, res) => {
         if(!visitors.has(req.body)) return res.end("Invalid ID");
-        if(peak < visitors.size) peak = visitors.size;
         visitors.set(req.body, {
             ut: Date.now(),
             ...visitors.get(req.body)
@@ -72,13 +79,11 @@ export default function(app) {
         visitors.delete(req.body);
         res.end("Deleted");
     });
-};
 
-setInterval(() => {
-    const now = Date.now();
-    for(const [uuid, data] of [...visitors]) {
-        if(now - data.ut > 60000) {
-            visitors.delete(uuid);
+    setInterval(() => {
+        const now = Date.now();
+        for(const [id, { ut }] of visitors) {
+            if(now - ut >= 60000) visitors.delete(id);
         }
-    }
-}, 60000);
+    }, 60000);
+}
